@@ -10,11 +10,16 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
 
-    let itemArray = ["item 1", "item 2", "item 3"]
+    var itemArray = ["item 1", "item 2", "item 3"]
+    let userDefaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        if let items = userDefaults.array(forKey: "TodoList") as? [String] {
+            itemArray = items
+        }
     }
 
     // MARK - Datasource
@@ -50,7 +55,12 @@ class TodoListViewController: UITableViewController {
         
         let alert = UIAlertController(title: "Add Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
+            
             self.itemArray.append(alertTextfield.text!)
+            
+            self.userDefaults.setValue(self.itemArray, forKey: "TodoList")
+            self.userDefaults.synchronize()
+            
             self.tableView.reloadData()
         }
         

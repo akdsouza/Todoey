@@ -9,19 +9,18 @@
 import UIKit
 
 class TodoListViewController: UITableViewController {
-
+    
     var itemArray = [Item]()
     let userDefaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("TodoList.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        if let items = userDefaults.array(forKey: "TodoList") as? [Item] {
-            itemArray = items
-        }
+        loadItems()
     }
-
+    
     // MARK - Datasource
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -60,8 +59,14 @@ class TodoListViewController: UITableViewController {
             item.title = alertTextfield.text!
             self.itemArray.append(item)
             
-            self.userDefaults.setValue(self.itemArray, forKey: "TodoList")
-            self.userDefaults.synchronize()
+            let encoder = PropertyListEncoder()
+            
+            do {
+                let data = try encoder.encode(self.itemArray)
+                try data.write(to: self.dataFilePath!)
+            } catch {
+                print("error encoding items \(error)")
+            }
             
             self.tableView.reloadData()
         }
@@ -75,11 +80,25 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    func loadItems() {
+        
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("error decoding items \(error)")
+            }
+            
+        }
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
+    
+    
 }
 
